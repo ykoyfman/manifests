@@ -26,6 +26,7 @@ rules:
   - kubeflow.org
   resources:
   - scheduledworkflows
+  - scheduledworkflows/finalizers
   verbs:
   - get
   - list

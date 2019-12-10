@@ -1,0 +1,7 @@
+bases:
+- ../../base
+
+images:
+- name: gcr.io/kubeflow-images-public/notebook-controller
+  newTag: latest
+  newName: quay.io/croberts/notebook-controller
