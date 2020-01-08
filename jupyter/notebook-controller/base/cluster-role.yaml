@@ -67,6 +67,7 @@ rules:
   resources:
   - notebooks
   - notebooks/status
+  - notebooks/finalizers
   verbs:
   - get
   - list
