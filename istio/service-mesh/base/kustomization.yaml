@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- kf-servicemesh-resources.yaml
+- cluster-roles.yaml
+namespace: kubeflow
+configMapGenerator:
+- name: istio-parameters
+  env: params.env
+vars:
+- name: serviceMeshRbacConfig
+  objref:
+    kind: ConfigMap
+    name: istio-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.serviceMeshRbacConfig
+- name: gatewaySelector
+  objref:
+    kind: ConfigMap
+    name: istio-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.gatewaySelector
+configurations:
+- params.yaml
