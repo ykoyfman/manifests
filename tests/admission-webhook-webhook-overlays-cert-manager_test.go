@@ -13,62 +13,94 @@ import (
 	"testing"
 )
 
-func writeWebhookOverlaysApplication(th *KustTestHarness) {
-	th.writeF("/manifests/admission-webhook/webhook/overlays/application/application.yaml", `
-apiVersion: app.k8s.io/v1beta1
-kind: Application
+func writeWebhookOverlaysCertManager(th *KustTestHarness) {
+	th.writeF("/manifests/admission-webhook/webhook/overlays/cert-manager/certificate.yaml", `
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
 metadata:
-  name: webhook
+  name: admission-webhook-cert
 spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: webhook
-      app.kubernetes.io/instance: webhook-v0.7.0
-      app.kubernetes.io/managed-by: kfctl
-      app.kubernetes.io/component: bootstrap
-      app.kubernetes.io/part-of: webhook
-      app.kubernetes.io/version: v0.7.0
-  componentKinds:
-  - group: admissionregistration.k8s.io
-    kind: MutatingWebhookConfiguration
-  - group: core
-    kind: ConfigMap
-  - group: apps
-    kind: StatefulSet
-  - group: core
-    kind: Service
-  - group: core
-    kind: ServiceAccount
-  descriptor:
-    type: bootstrap
-    version: v1beta1
-    description: injects volume, volume mounts, env vars into PodDefault
-    maintainers: []
-    owners: []
-    keywords: 
-     - admission-webhook
-     - kubeflow
-    links:
-    - description: About
-      url: https://github.com/kubeflow/kubeflow/tree/master/components/admission-webhook
-  addOwnerRef: true
-
+  isCA: true
+  commonName: $(serviceName).$(namespace).svc
+  dnsNames:
+  - $(serviceName).$(namespace).svc
+  - $(serviceName).$(namespace).svc.cluster.local
+  issuerRef:
+    kind: ClusterIssuer
+    name: $(issuer)
+  secretName: webhook-certs`)
+	th.writeF("/manifests/admission-webhook/webhook/overlays/cert-manager/mutating-webhook-configuration.yaml", `
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: mutating-webhook-configuration
+  annotations:
+    cert-manager.io/inject-ca-from: $(namespace)/$(cert_name)
+  `)
+	th.writeF("/manifests/admission-webhook/webhook/overlays/cert-manager/deployment.yaml", `
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: admission-webhook
+        args:
+        - --tlsCertFile=/etc/webhook/certs/tls.crt
+        - --tlsKeyFile=/etc/webhook/certs/tls.key
 `)
-	th.writeK("/manifests/admission-webhook/webhook/overlays/application", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+	th.writeF("/manifests/admission-webhook/webhook/overlays/cert-manager/params.yaml", `
+varReference:
+- path: spec/commonName
+  kind: Certificate
+- path: spec/dnsNames
+  kind: Certificate
+- path: spec/issuerRef/name
+  kind: Certificate
+- path: metadata/annotations
+  kind: MutatingWebhookConfiguration
+`)
+	th.writeF("/manifests/admission-webhook/webhook/overlays/cert-manager/params.env", `
+issuer=kubeflow-self-signing-issuer`)
+	th.writeK("/manifests/admission-webhook/webhook/overlays/cert-manager", `
 bases:
 - ../../base
+
 resources:
-- application.yaml
-commonLabels:
-  app.kubernetes.io/name: webhook
-  app.kubernetes.io/instance: webhook-v0.7.0
-  app.kubernetes.io/managed-by: kfctl
-  app.kubernetes.io/component: webhook
-  app.kubernetes.io/part-of: kubeflow
-  app.kubernetes.io/version: v0.7.0
-`)
+- certificate.yaml
+
+patchesStrategicMerge:
+- mutating-webhook-configuration.yaml
+- deployment.yaml
+
+configMapGenerator:
+- name: admission-webhook-parameters
+  behavior: merge
+  env: params.env
+generatorOptions:
+  disableNameSuffixHash: true
+
+vars:
+- name: issuer
+  objref:
+    kind: ConfigMap
+    name: admission-webhook-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.issuer
+- name: cert_name
+  objref:
+      kind: Certificate
+      group: cert-manager.io
+      version: v1alpha2
+      name: admission-webhook-cert
+  fieldref:
+    fieldpath: metadata.name
+
+configurations:
+- params.yaml`)
 	th.writeF("/manifests/admission-webhook/webhook/base/cluster-role-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -289,49 +321,50 @@ resources:
 - service.yaml
 - crd.yaml
 commonLabels:
-  kustomize.component: admission-webhook
   app: admission-webhook
+  kustomize.component: admission-webhook
 namePrefix: admission-webhook-
 images:
 - name: gcr.io/kubeflow-images-public/admission-webhook
   newName: gcr.io/kubeflow-images-public/admission-webhook
-  newTag: v20190520-v0-139-gcee39dbc-dirty-0d8f4c
+  newTag: vmaster-gaf96e4e3
 namespace: kubeflow
 configMapGenerator:
-- name: admission-webhook-parameters
-  env: params.env
+- envs:
+  - params.env
+  name: admission-webhook-parameters
 generatorOptions:
   disableNameSuffixHash: true
 vars:
-- name: namespace
+- fieldref:
+    fieldPath: data.namespace
+  name: namespace
   objref:
+    apiVersion: v1
     kind: ConfigMap
     name: admission-webhook-parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.namespace
-- name: serviceName
+- fieldref:
+    fieldPath: metadata.name
+  name: serviceName
   objref:
+    apiVersion: v1
     kind: Service
     name: service
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.name
-- name: deploymentName
+- fieldref:
+    fieldPath: metadata.name
+  name: deploymentName
   objref:
+    apiVersion: apps/v1
     kind: Deployment
     name: deployment
-    apiVersion: apps/v1
-  fieldref:
-    fieldpath: metadata.name
 configurations:
 - params.yaml
 `)
 }
 
-func TestWebhookOverlaysApplication(t *testing.T) {
-	th := NewKustTestHarness(t, "/manifests/admission-webhook/webhook/overlays/application")
-	writeWebhookOverlaysApplication(th)
+func TestWebhookOverlaysCertManager(t *testing.T) {
+	th := NewKustTestHarness(t, "/manifests/admission-webhook/webhook/overlays/cert-manager")
+	writeWebhookOverlaysCertManager(th)
 	m, err := th.makeKustTarget().MakeCustomizedResMap()
 	if err != nil {
 		t.Fatalf("Err: %v", err)
@@ -340,7 +373,7 @@ func TestWebhookOverlaysApplication(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Err: %v", err)
 	}
-	targetPath := "../admission-webhook/webhook/overlays/application"
+	targetPath := "../admission-webhook/webhook/overlays/cert-manager"
 	fsys := fs.MakeRealFS()
 	lrc := loader.RestrictionRootOnly
 	_loader, loaderErr := loader.NewLoader(lrc, validators.MakeFakeValidator(), targetPath, fsys)

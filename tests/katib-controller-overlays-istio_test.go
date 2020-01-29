@@ -107,6 +107,8 @@ spec:
     metadata:
       labels:
         app: katib-controller
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: katib-controller
       containers:
@@ -320,6 +322,8 @@ spec:
       labels:
         app: katib
         component: db
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - name: katib-db
@@ -425,6 +429,8 @@ spec:
       labels:
         app: katib
         component: manager
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - name: katib-manager
@@ -492,6 +498,8 @@ spec:
       labels:
         app: katib
         component: ui
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - name: katib-ui
