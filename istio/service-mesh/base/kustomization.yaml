@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - kf-servicemesh-resources.yaml
 - cluster-roles.yaml
+- ocp-networkpolicy.yaml
 namespace: kubeflow
 configMapGenerator:
 - name: istio-parameters
