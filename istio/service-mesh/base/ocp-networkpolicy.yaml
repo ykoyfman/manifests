@@ -4,9 +4,14 @@ metadata:
   name: allow-ingress-tokubelfow
   namespace: kubeflow
 spec:
-  podSelector: {}
+  podSelector: 
+    matchLabels:
+     app: katib-controller
   ingress:
     - from:
         - namespaceSelector: {}
+    - ports:
+      - protocol: TCP
+        port: 443
   policyTypes:
     - Ingress

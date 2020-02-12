@@ -15,6 +15,14 @@ spec:
     name: openshift-scc
   - kustomizeConfig:
       parameters:
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: istio/service-mesh-memberroll
+    name: servicemeshmemberroll-install
+  - kustomizeConfig:
+      parameters:
       - name: serviceMeshRbacConfig
         value: "OFF"
       repoRef:
