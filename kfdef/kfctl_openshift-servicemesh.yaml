@@ -22,12 +22,14 @@ spec:
         path: istio/service-mesh-memberroll
     name: servicemeshmemberroll-install
   - kustomizeConfig:
+      overlays:
+      - servicemesh
       parameters:
-      - name: serviceMeshRbacConfig
+      - name: clusterRbacConfig
         value: "OFF"
       repoRef:
         name: manifests
-        path: istio/service-mesh
+        path: istio/istio
     name: istio
 # - kustomizeConfig:
   #     repoRef:
