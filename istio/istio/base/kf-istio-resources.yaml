@@ -102,10 +102,9 @@ spec:
           number: 443
       weight: 100
 ---
-apiVersion: rbac.maistra.io/v1
-kind: ServiceMeshRbacConfig
+apiVersion: rbac.istio.io/v1alpha1
+kind: ClusterRbacConfig
 metadata:
   name: default
-  namespace: istio-system
 spec:
   mode: $(clusterRbacConfig)
