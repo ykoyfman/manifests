@@ -81,8 +81,35 @@ spec:
   #       path: admission-webhook/webhook
   #   name: webhook
   - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: cert-manager
+      repoRef:
+        name: manifests
+        path: cert-manager/cert-manager-crds
+    name: cert-manager-crds
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: kube-system
+      repoRef:
+        name: manifests
+        path: cert-manager/cert-manager-kube-system-resources
+    name: cert-manager-kube-system-resources
+  - kustomizeConfig:
+      overlays:
+      - self-signed
+      parameters:
+      - name: namespace
+        value: cert-manager
+      repoRef:
+        name: manifests
+        path: cert-manager/cert-manager
+    name: cert-manager
+  - kustomizeConfig:
       overlays:
       - istio
+      - openshift
       repoRef:
         name: manifests
         path: jupyter/jupyter-web-app
@@ -91,6 +118,7 @@ spec:
       overlays:
       - istio
       - openshift
+  #    - crc # If you're running on Code Ready Containers (CRC), you will need this overlay to work around issue https://github.com/code-ready/crc/issues/814
       repoRef:
         name: manifests
         path: metadata
@@ -243,5 +271,5 @@ spec:
     name: seldon-core-operator
   repos:
   - name: manifests
-    uri:  https://github.com/opendatahub-io/manifests/tarball/v0.7-branch-openshift
+    uri: https://github.com/opendatahub-io/manifests/tarball/v0.7-branch-openshift
   version: v0.7-branch-openshift

@@ -203,6 +203,9 @@ metadata:
   name: deployment
 spec:
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - name: manager
