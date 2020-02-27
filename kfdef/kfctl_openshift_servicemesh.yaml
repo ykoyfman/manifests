@@ -107,6 +107,7 @@ spec:
       overlays:
       - istio
       - openshift
+#    - crc # If you're running on Code Ready Containers (CRC), you will need this overlay to work around issue https://github.com/code-ready/crc/issues/814
       repoRef:
         name: manifests
         path: metadata
