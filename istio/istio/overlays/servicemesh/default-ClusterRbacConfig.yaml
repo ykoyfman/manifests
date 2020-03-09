@@ -1,0 +1,6 @@
+- op: replace
+  path: /apiVersion
+  value: rbac.maistra.io/v1
+- op: replace
+  path: /kind
+  value: ServiceMeshRbacConfig

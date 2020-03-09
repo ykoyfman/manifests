@@ -3,3 +3,5 @@ varReference:
   kind: ClusterRbacConfig
 - path: spec/selector
   kind: Gateway
+- path: spec/mode
+  kind: ServiceMeshRbacConfig

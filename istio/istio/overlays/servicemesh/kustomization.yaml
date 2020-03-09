@@ -1,0 +1,13 @@
+bases:
+- ../../base
+
+patchesJson6902:
+- target:
+    kind: ClusterRbacConfig
+    name: default
+    version: v1alpha1
+    group: rbac.istio.io
+  path: default-ClusterRbacConfig.yaml
+
+resources:
+- ocp-networkpolicy.yaml
