@@ -266,6 +266,8 @@ spec:
         path: profiles
     name: profiles
   - kustomizeConfig:
+      overlays:
+      - openshift
       repoRef:
         name: manifests
         path: seldon/seldon-core-operator
