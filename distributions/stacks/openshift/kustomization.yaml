@@ -44,4 +44,4 @@ vars:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
   newName: quay.io/kubeflow/profile-controller 
-  newTag: v0.8.0
+  newTag: v0.12.0
