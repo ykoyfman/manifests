@@ -9,7 +9,9 @@ resources:
 ## Per istion 1.9 installation on openshift https://istio.io/latest/docs/setup/platform-setup/openshift/
 # This is here because it needs to install in namespace kubeflow
   - application/istio-1-9-0-Openshift/network-attachment.yaml
-  - ../../../apps/centraldashboard/upstream/overlays/istio
+#Added custom centraldashboard to remove tensorboard
+ # - ../../../apps/centraldashboard/upstream/overlays/istio
+  - application/centraldashboard
 #Admission webhooks
   - ../../../apps/admission-webhook/upstream/overlays/cert-manager
 #profiles is here since namespace was not being replaced for the virtual service and pipeline depends on it
