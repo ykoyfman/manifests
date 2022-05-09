@@ -1,0 +1,47 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  annotations:
+    kubernetes.io/description: tekton-anyuid provides all features of the restricted SCC
+      but allows users to run with any UID and any GID.
+  name: tekton-anyuid-$(NAMESPACE)
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups:
+- system:cluster-admins
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- MKNOD
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users:
+# tekton pipeline runner
+- system:serviceaccount:$(TEKTON-NAMESPACE):tekton-pipelines-controller
+- system:serviceaccount:$(TEKTON-NAMESPACE):tekton-pipelines-webhook
+- system:serviceaccount:kubeflow:kfp-csi-s3
+# Allowing all serviceaccounts in kubeflow to run any uid per istio 1.9 documentation for openshift https://istio.io/latest/docs/setup/platform-setup/openshift/
+- system:serviceaccount:kubeflow:csi-attacher
+# Allowing all serviceaccounts in kubeflow to run any uid per istio 1.9 documentation for openshift https://istio.io/latest/docs/setup/platform-setup/openshift/
+- system:serviceaccount:kubeflow:csi-provisioner
+- system:serviceaccount:kubeflow:pipeline-runner
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
