@@ -8,14 +8,17 @@ rules:
   - apiGroups:
       - kubeflow.org
     resources:
+      - mpijobs
       - tfjobs
       - mxjobs
       - pytorchjobs
       - xgboostjobs
+      - mpijobs/status
       - tfjobs/status
       - pytorchjobs/status
       - mxjobs/status
       - xgboostjobs/status
+      - mpijobs/finalizers
       - tfjobs/finalizers
       - mxjobs/finalizers
       - pytorchjobs/finalizers
@@ -50,10 +53,36 @@ rules:
     verbs:
       - "*"
   - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - create
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+    - configmaps
+    - secrets
+    - serviceaccounts
+    verbs:
+      - create
+      - list
+      - watch
+      - update
+  - apiGroups:
       - scheduling.volcano.sh
     resources:
       - podgroups
       - podgroups/finalizers
     verbs:
       - "*"
-
